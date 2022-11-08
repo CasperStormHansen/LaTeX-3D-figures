@@ -1,0 +1,786 @@
+\documentclass[11pt,a4paper,notitlepage]{article}
+
+\usepackage[margin=10pt,labelfont=bf,labelsep=endash,font=small]{caption}
+\usepackage[labelformat=empty,font={bf,small}]{subcaption}
+
+\usepackage{tikz}
+\usetikzlibrary{decorations.text}
+\usetikzlibrary{3d}
+\usetikzlibrary{arrows.meta}
+\usepackage{tikz-3dplot}
+
+\definecolor{white}{rgb}{1,1,1}
+\definecolor{labelcolor}{rgb}{0,0,0}
+\definecolor{probabilitycolor}{rgb}{0.25,0.25,1}
+
+\newcommand{\edgetext}[1]{#1}
+
+%2D
+\newcommand{\Circle}[3]{
+	\filldraw [fill=white] (#1,#2) circle [radius=.38];	
+	\fill[fill=probabilitycolor] (#1,#2) -- (#1+0.38,#2) arc (0:{#3*360}:.38) -- cycle;
+	\draw (#1,#2) circle [radius=.38];
+	\ifthenelse{\equal{#3}{1}}{}{
+		\draw[-] ({#1+cos(360*#3)*.38},{#2+sin(360*#3)*.38}) -- (#1,#2) -- (#1+.38,#2);
+	}
+}
+
+\newcommand{\InvisibleCircle}[2]{
+	\filldraw [color=white,fill=white] (#1,#2) circle [radius=.38];	
+}
+
+\newcommand{\FlowTextAbove}[5]{
+	\draw [color=probabilitycolor,thick,-] (#1,#2) -- (#3,#4) node[midway,sloped,above,color=labelcolor] {\edgetext{\small\smash{#5}}};
+}
+
+\newcommand{\FlowTextBelow}[5]{
+	\draw [color=probabilitycolor,thick,-] (#1,#2) -- (#3,#4) node[midway,sloped,below,color=labelcolor,yshift=-1.2ex] {\edgetext{\small\smash{#5}}};
+}
+
+\newcommand{\FlatUpdate}[3]{
+	\draw [color=probabilitycolor,thick,dotted,-] (#1,#3) -- (#2,#3); 
+}
+
+\newcommand{\FlatEliminate}[3]{
+	\draw [color=probabilitycolor,thick,dotted,-{Bar}] (#1,#3) -- (#2,#3); 
+}
+
+\newcommand{\FlatEvidence}[4]{
+	\filldraw [color=black,fill=gray!20,fill opacity=0.5] ({#1-1.2},{#2+2.1}) rectangle ({#1+1.2},{#3-1});
+	\node [color=black, align=center] at (#1,{#2+1.35}) {\Large #4};
+}
+
+
+%3D
+\tdplotsetmaincoords{135}{45}
+
+\makeatletter
+\tikzoption{canvas is plane}[]{\@setOxy#1}
+\def\@setOxy O(#1,#2,#3)x(#4,#5,#6)y(#7,#8,#9)%
+  {\def\tikz@plane@origin{\pgfpointxyz{#1}{#2}{#3}}%
+   \def\tikz@plane@x{\pgfpointxyz{#4}{#5}{#6}}%
+   \def\tikz@plane@y{\pgfpointxyz{#7}{#8}{#9}}%
+   \tikz@canvas@is@plane
+  }
+\makeatother 
+
+\newcommand{\Disk}[4]{
+	\begin{scope}[canvas is yz plane at x = #1,transform shape]
+		\filldraw [fill=white] (#2,#3) circle [radius=.38];
+	\end{scope}
+
+	\draw[-,color=white] (#1-.1,{#2+cos(147)*.366},{#3+sin(147)*.366}) -- (#1,{#2+cos(147)*.366},{#3+sin(147)*.366});
+	\draw[-,color=white] (#1-.1,{#2+cos(-33)*.366},{#3+sin(-33)*.366}) -- (#1,{#2+cos(-33)*.366},{#3+sin(-33)*.366});
+
+	\foreach \i in {.01,.02,.03,.04,.05,.06,.07,.08,.09}
+	{
+		\begin{scope}[canvas is yz plane at x = #1-\i,transform shape]
+		\draw[color=probabilitycolor] (#2+.38,#3) arc (0:{360*#4}:.38);
+		\end{scope}
+	}
+
+	\begin{scope}[canvas is yz plane at x = #1,transform shape]
+		\draw (#2+.38,#3) arc (0:{360*#4}:.38);
+	\end{scope}
+
+	\draw[-] (#1-.1,{#2+cos(0)*.38},{#3+sin(0)*.38}) -- (#1,{#2+cos(0)*.38},{#3+sin(0)*.38});
+	\draw[-] (#1-.1,{#2+cos(360*#4)*.38},{#3+sin(360*#4)*.38}) -- (#1,{#2+cos(360*#4)*.38},{#3+sin(360*#4)*.38});
+	\draw[-] (#1-.1,{#2+cos(147)*.38},{#3+sin(147)*.38}) -- (#1,{#2+cos(147)*.38},{#3+sin(147)*.38});
+	\draw[-] (#1-.1,{#2+cos(-33)*.38},{#3+sin(-33)*.38}) -- (#1,{#2+cos(-33)*.38},{#3+sin(-33)*.38});
+
+	\begin{scope}[canvas is yz plane at x = #1-.10,transform shape]
+		\fill [fill=white] (#2,#3) circle [radius=.38];
+		\fill[fill=probabilitycolor] (#2,#3) -- (#2+.38,#3) arc (0:{360*#4}:.38) -- cycle;
+		\draw (#2,#3) circle [radius=.38];
+	\draw[-] ({#2+cos(360*#4)*.38},{#3+sin(360*#4)*.38}) -- (#2,#3) -- (#2+.38,#3);
+	\end{scope}
+}
+
+\newcommand{\Evidence}[3]{
+	\begin{scope}[canvas is yz plane at x = #1,transform shape]
+		\filldraw [color=black,fill=gray!20,fill opacity=0.5] (0,0) -- (0,5) -- (2.5,5) -- (2.5,4) -- ({#2+1},4) -- ({#2+1},0) -- cycle;
+		\node [color=black, align=center] at (1.25,4.25) {\Large #3};
+	\end{scope}
+}
+
+\newcommand{\TwoEvidence}[4]{
+	\begin{scope}[canvas is yz plane at x = #1,transform shape]
+		\filldraw [color=black,fill=gray!20,fill opacity=0.5] (0,0) -- (0,5) -- (2.5,5) -- (2.5,4) -- ({#2+1},4) -- ({#2+1},0) -- cycle;
+		\node [color=black, align=center] at (1.25,4.25) {\Large #3\\[3pt]\Large #4};
+	\end{scope}
+}
+
+\newcommand{\Cartesian}[3]{
+	\draw[->,very thin] (0,0,0) -- ({#1+4},0,0) node[anchor=south west]{\large Dependency};
+	\draw[->,very thin] (0,0,0) -- (0,{#2+2},0) node[anchor=south west]{\large World};
+	\draw[->,very thin] (0,0,0) -- (0,0,{#3+3}) node[anchor=south]{\large Center};
+}
+
+\newcommand{\Update}[4]{
+	\draw [color=probabilitycolor,thick,dotted,-] (#1,#3,#4) -- ({#2-.1},#3,#4); 
+}
+
+\newcommand{\Eliminate}[4]{
+	\draw [color=probabilitycolor,thick,dotted,-{Bar}] (#1,#3,#4) -- (#2,#3,#4); 
+}
+
+\newcommand{\CombineHorizontal}[3]{
+	\begin{scope}[canvas is yz plane at x = #1,transform shape]
+		\draw[color=probabilitycolor,-] (0,#3) -- (#2,#3);
+	\end{scope}
+}
+
+\newcommand{\CombineVertical}[3]{
+	\begin{scope}[canvas is yz plane at x = #1,transform shape]
+		\draw[color=probabilitycolor,-] (#2,0) -- (#2,#3);
+	\end{scope}
+}
+
+\newcommand{\CenterCircle}[3]{
+	\begin{scope}[canvas is xz plane at y = 0,transform shape]
+		\filldraw [fill=white] (#1,#2) circle [radius=.38];	
+		\fill[fill=probabilitycolor] (#1,#2) -- (#1+0.38,#2) arc (0:{#3*360}:.38) -- cycle;
+		\draw (#1,#2) circle [radius=.38];
+		\ifthenelse{\equal{#3}{1}}{}{
+			\draw[-] ({#1+cos(360*#3)*.38},{#2+sin(360*#3)*.38}) -- (#1,#2) -- (#1+.38,#2);
+		}
+	\end{scope}
+}
+
+\newcommand{\WorldCircle}[3]{
+	\begin{scope}[canvas is xy plane at z = 0,transform shape]
+		\filldraw [fill=white] (#1,#2) circle [radius=.38];	
+		\fill[fill=probabilitycolor] (#1,#2) -- (#1+0.38,#2) arc (0:{#3*360}:.38) -- cycle;
+		\draw (#1,#2) circle [radius=.38];	
+		\ifthenelse{\equal{#3}{1}}{}{
+			\draw[-] ({#1+cos(360*#3)*.38},{#2+sin(360*#3)*.38}) -- (#1,#2) -- (#1+.38,#2);
+		}
+	\end{scope}
+}
+
+\newcommand{\CombinedFlowTextAbove}[5]{
+	\draw [color=probabilitycolor,thick,-] (#1,#3,#4) -- ({#2-.08},#3,#4); 
+	\begin{scope}[canvas is plane={O({(#1+#2)/2},#3,#4)x({(#1+#2)/2+1},#3,#4)y({(#1+#2)/2},{#3-sqrt(1/2)},{#4+sqrt(1/2)})},transform shape,color=labelcolor]
+		\node at (0,.25) {\edgetext{#5}};
+	\end{scope}
+}
+
+\newcommand{\CombinedFlowTextBelow}[5]{
+	\draw [color=probabilitycolor,thick,-] (#1,#3,#4) -- ({#2-.08},#3,#4); 
+	\begin{scope}[canvas is plane={O({(#1+#2)/2},#3,#4)x({(#1+#2)/2+1},#3,#4)y({(#1+#2)/2},{#3-sqrt(1/2)},{#4+sqrt(1/2)})},transform shape,color=labelcolor]
+		\node at (0,-.25) {\edgetext{#5}};
+	\end{scope}
+}
+
+\newcommand{\CombinedFlowSplitTextAbove}[4]{
+	\draw [color=probabilitycolor,thick,-] (#1,#2,#3) -- ({#1+2.9},{#2+2},#3); 
+	\begin{scope}[canvas is plane={O({#1+1.45},{#2+1},#3)x({#1+1.45+2.9/sqrt(12.41)},{#2+1+2/sqrt(12.41)},#3)y({#1+1.45+sqrt(1/2)*2/sqrt(12.41)},{#2+1-sqrt(1/2)*2.9/sqrt(12.41)},{#3+sqrt(1/2)})},transform shape,color=labelcolor]
+		\node at (0,.25) {\edgetext{#4}};
+	\end{scope}
+}
+
+\newcommand{\CombinedFlowSplitTextBelow}[4]{
+	\draw [color=probabilitycolor,thick,-] (#1,#2,#3) -- ({#1+2.9},{#2+2},#3);
+	\begin{scope}[canvas is plane={O({#1+1.45},{#2+1},#3)x({#1+1.45+2.9/sqrt(12.41)},{#2+1+2/sqrt(12.41)},#3)y({#1+1.45+sqrt(1/2)*2/sqrt(12.41)},{#2+1-sqrt(1/2)*2.9/sqrt(12.41)},{#3+sqrt(1/2)})},transform shape,color=labelcolor]
+		\node at (0,-.25) {\edgetext{#4}};
+	\end{scope}
+}
+
+\newcommand{\CenterFlowTextAbove}[5]{
+	\begin{scope}[canvas is xz plane at y = 0,transform shape]
+		\draw[color=probabilitycolor,thick,-] (#1,#2) -- (#3,#4);
+	\end{scope}
+	\begin{scope}[canvas is plane={O({(#1+#3)/2},0,{(#2+#4)/2})x(
+		{(#1+#3)/2+(#3-#1)/sqrt(pow(#3-#1,2)+pow(#4-#2,2))},%
+		0,%
+		{(#2+#4)/2+(#4-#2)/sqrt(pow(#3-#1,2)+pow(#4-#2,2))}%
+		)y(%
+		{(#1+#3)/2-(#4-#2)/sqrt(pow(#3-#1,2)+pow(#4-#2,2))},%
+		0,%
+		{(#2+#4)/2+(#3-#1)/sqrt(pow(#3-#1,2)+pow(#4-#2,2))})%
+		},transform shape,color=labelcolor]
+		\node at (0,.25) {\edgetext{#5}};
+	\end{scope}
+}
+
+\newcommand{\CenterFlowTextBelow}[5]{
+	\begin{scope}[canvas is xz plane at y = 0,transform shape]
+		\draw[color=probabilitycolor,thick,-] (#1,#2) -- (#3,#4);
+	\end{scope}
+	\begin{scope}[canvas is plane={O({(#1+#3)/2},0,{(#2+#4)/2})x(
+		{(#1+#3)/2+(#3-#1)/sqrt(pow(#3-#1,2)+pow(#4-#2,2))},%
+		0,%
+		{(#2+#4)/2+(#4-#2)/sqrt(pow(#3-#1,2)+pow(#4-#2,2))}%
+		)y(%
+		{(#1+#3)/2-(#4-#2)/sqrt(pow(#3-#1,2)+pow(#4-#2,2))},%
+		0,%
+		{(#2+#4)/2+(#3-#1)/sqrt(pow(#3-#1,2)+pow(#4-#2,2))})%
+		},transform shape,color=labelcolor]
+		\node at (0,-.25) {\edgetext{#5}};
+	\end{scope}
+}
+
+\newcommand{\WorldFlowTextAbove}[5]{
+	\begin{scope}[canvas is xy plane at z = 0,transform shape]
+		\draw[color=probabilitycolor,thick,-] (#1,#2) -- (#3,#4);
+	\end{scope}
+	\begin{scope}[canvas is plane={O({(#1+#3)/2},{(#2+#4)/2},0)x(
+		{(#1+#3)/2+(#3-#1)/sqrt(pow(#3-#1,2)+pow(#4-#2,2))},%
+		{(#2+#4)/2+(#4-#2)/sqrt(pow(#3-#1,2)+pow(#4-#2,2))},%
+		0%
+		)y(%
+		{(#1+#3)/2+(#4-#2)/sqrt(pow(#3-#1,2)+pow(#4-#2,2))},%
+		{(#2+#4)/2-(#3-#1)/sqrt(pow(#3-#1,2)+pow(#4-#2,2))},
+		0%
+		)%
+		},transform shape,color=labelcolor]
+		\node at (0,.25) {\edgetext{#5}};
+	\end{scope}
+}
+
+\newcommand{\WorldFlowTextBelow}[5]{
+	\begin{scope}[canvas is xy plane at z = 0,transform shape]
+		\draw[color=probabilitycolor,thick,-] (#1,#2) -- (#3,#4);
+	\end{scope}
+	\begin{scope}[canvas is plane={O({(#1+#3)/2},{(#2+#4)/2},0)x(
+		{(#1+#3)/2+(#3-#1)/sqrt(pow(#3-#1,2)+pow(#4-#2,2))},%
+		{(#2+#4)/2+(#4-#2)/sqrt(pow(#3-#1,2)+pow(#4-#2,2))},%
+		0%
+		)y(%
+		{(#1+#3)/2+(#4-#2)/sqrt(pow(#3-#1,2)+pow(#4-#2,2))},%
+		{(#2+#4)/2-(#3-#1)/sqrt(pow(#3-#1,2)+pow(#4-#2,2))},
+		0%
+		)%
+		},transform shape,color=labelcolor]
+		\node at (0,-.25) {\edgetext{#5}};
+	\end{scope}
+}
+
+\newcommand{\TwoDPicture}[1]{\begin{tikzpicture}[scale=0.7,every node/.style={transform shape}]#1\end{tikzpicture}}
+
+\usepackage{environ}
+\makeatletter
+\newsavebox{\measure@tikzpicture}
+  \def\tikz@width{\textwidth}%
+  \def\tikzscale{1}\begin{lrbox}{\measure@tikzpicture}%
+		\begin{tikzpicture}[tdplot_main_coords]
+		\Cartesian{15}{7}{3}%This and ...
+		\Evidence{15}{7}{I exist}% ... this is used to define \tikzscale in preamble
+		\end{tikzpicture}
+  \end{lrbox}%
+  \pgfmathparse{\textwidth/\wd\measure@tikzpicture}%
+  \edef\tikzscale{\pgfmathresult}%
+\makeatother
+
+\newcommand{\ThreeDPicture}[1]{\begin{tikzpicture}[tdplot_main_coords,scale=\tikzscale,every node/.style={transform shape}]#1\end{tikzpicture}}
+
+
+	
+\begin{document}
+
+\begin{figure}[tb]
+\subcaptionbox{Protocol 1}{
+		\TwoDPicture{
+		\FlowTextAbove{0}{0}{3}{2}{Tails}
+		\FlowTextBelow{0}{0}{3}{-2}{Heads}
+		\FlowTextAbove{3}{2}{6}{3}{Monday}
+		\FlowTextBelow{3}{2}{6}{1}{Tuesday}
+		\FlowTextBelow{3}{-2}{6}{-2}{Monday}
+		\Circle{0}{0}{1}
+		\Circle{3}{2}{1/2}
+		\Circle{3}{-2}{1/2}
+		\Circle{6}{3}{1/4}
+		\Circle{6}{1}{1/4}
+		\Circle{6}{-2}{1/2}
+		\InvisibleCircle{6}{-3}
+		}
+}
+\hfill
+\subcaptionbox{Protocol 2}{
+		\TwoDPicture{
+		\FlowTextAbove{0}{0}{3}{2}{Monday}
+		\FlowTextBelow{0}{0}{3}{-2}{Tuesday}
+		\FlowTextAbove{3}{2}{6}{3}{Tails}
+		\FlowTextBelow{3}{2}{6}{1}{Heads}
+		\FlowTextAbove{3}{-2}{6}{-1}{Tails}
+		\FlowTextBelow{3}{-2}{6}{-3}{Heads}
+		\FlatUpdate{6}{9}{3}
+		\FlatUpdate{6}{9}{1}
+		\FlatUpdate{6}{9}{-1}
+		\FlatEliminate{6}{9}{-3}
+		\Circle{0}{0}{1}
+		\Circle{3}{2}{1/2}
+		\Circle{3}{-2}{1/2}
+		\Circle{6}{3}{1/4}
+		\Circle{6}{1}{1/4}
+		\Circle{6}{-1}{1/4}
+		\Circle{6}{-3}{1/4}
+		\Circle{9}{3}{1/3}
+		\Circle{9}{1}{1/3}
+		\Circle{9}{-1}{1/3}
+		}
+}
+
+\bigskip
+
+\subcaptionbox{Protocol 3}{
+		\TwoDPicture{
+		\FlowTextAbove{0}{0}{3}{2}{Tails}
+		\FlowTextBelow{0}{0}{3}{-2}{Heads}
+		\FlowTextAbove{3}{2}{6}{3}{Monday}
+		\FlowTextBelow{3}{2}{6}{1}{Tuesday}
+		\FlowTextAbove{3}{-2}{6}{-1}{Monday}
+		\FlowTextBelow{3}{-2}{6}{-3}{Tuesday}
+		\FlatUpdate{6}{9}{3}
+		\FlatUpdate{6}{9}{1}
+		\FlatUpdate{6}{9}{-1}
+		\FlatEliminate{6}{9}{-3}
+		\Circle{0}{0}{1}
+		\Circle{3}{2}{1/2}
+		\Circle{3}{-2}{1/2}
+		\Circle{6}{3}{1/4}
+		\Circle{6}{1}{1/4}
+		\Circle{6}{-1}{1/4}
+		\Circle{6}{-3}{1/4}
+		\Circle{9}{3}{1/3}
+		\Circle{9}{1}{1/3}
+		\Circle{9}{-1}{1/3}
+		}
+}
+\hfill
+\subcaptionbox{Protocol 4}{
+		\TwoDPicture{
+		\FlowTextAbove{0}{0}{3}{2}{Monday}
+		\FlowTextBelow{0}{0}{3}{-2}{Tuesday}
+		\FlowTextAbove{3}{2}{6}{3}{Tails}
+		\FlowTextBelow{3}{2}{6}{1}{Heads}
+		\FlowTextBelow{3}{-2}{6}{-2}{Tails}
+		\Circle{0}{0}{1}
+		\Circle{3}{2}{1/2}
+		\Circle{3}{-2}{1/2}
+		\Circle{6}{3}{1/4}
+		\Circle{6}{1}{1/4}
+		\Circle{6}{-2}{1/2}
+		\InvisibleCircle{6}{-3}
+		}
+}
+
+\caption{Four protocols for Sleeping Beauty. Solid lines are used for Nature's assignment of probabilities, while dotted lines indicate conditionalization on Beauty being awake.}
+\label{fig:HalpernSleepingBeauty}
+\end{figure}
+
+
+\begin{figure}[htb]\centering
+		\TwoDPicture{
+		\FlatEvidence{6}{3}{-2}{(priors)}
+		\FlatEvidence{9}{3}{-2}{First}
+		\FlowTextAbove{-3}{0}{0}{0}{I exist}
+		\FlowTextAbove{0}{0}{3}{2}{2 trillion}
+		\FlowTextBelow{0}{0}{3}{-2}{1 trillion}
+		\FlowTextAbove{3}{2}{6}{3}{First}
+		\FlowTextBelow{3}{2}{6}{1}{Second}
+		\FlowTextBelow{3}{-2}{6}{-2}{First}
+		\FlatUpdate{6}{9}{3}
+		\FlatEliminate{6}{9}{1}
+		\FlatUpdate{6}{9}{-2}
+		\Circle{-3}{0}{1}
+		\Circle{0}{0}{1}
+		\Circle{3}{2}{1/2}
+		\Circle{3}{-2}{1/2}
+		\Circle{6}{3}{1/4}
+		\Circle{6}{1}{1/4}
+		\Circle{6}{-2}{1/2}
+		\Circle{9}{3}{1/3}
+		\Circle{9}{-2}{2/3}
+		}
+\caption{Doomsday according to Halpern's first protocol and Bradley. It is here made explicit what the final probabilities are conditionalized on.}
+\label{fig:BradleyDoomsday}
+\end{figure}
+
+
+\begin{figure}[htb]\centering
+		\TwoDPicture{
+		\FlatEvidence{6}{3}{-3}{(priors)}
+		\FlatEvidence{9}{3}{-3}{(I'm) Up}
+		\FlowTextAbove{-3}{0}{0}{0}{I exist}
+		\FlowTextAbove{0}{0}{3}{2}{Everettian}
+		\FlowTextBelow{0}{0}{3}{-2}{Stochastic}
+		\FlowTextAbove{3}{2}{6}{3}{I'm Up}
+		\FlowTextBelow{3}{2}{6}{1}{I'm Down}
+		\FlowTextAbove{3}{-2}{6}{-1}{Up}
+		\FlowTextBelow{3}{-2}{6}{-3}{Down}
+		\FlatUpdate{6}{9}{3}
+		\FlatEliminate{6}{9}{1}
+		\FlatUpdate{6}{9}{-1}
+		\FlatEliminate{6}{9}{-3}
+		\Circle{-3}{0}{1}
+		\Circle{0}{0}{1}
+		\Circle{3}{2}{1/2}
+		\Circle{3}{-2}{1/2}
+		\Circle{6}{3}{1/4}
+		\Circle{6}{1}{1/4}
+		\Circle{6}{-1}{1/4}
+		\Circle{6}{-3}{1/4}
+		\Circle{9}{3}{1/2}
+		\Circle{9}{-1}{1/2}
+		}
+\caption{Quantum Mechanics according to Bradley}
+\label{fig:BradleyQuantum}
+\end{figure}
+
+
+\begin{figure}[htb]\centering
+		\TwoDPicture{
+		\FlatEvidence{6}{3}{-2}{(priors)}
+		\FlatEvidence{9}{3}{-2}{I exist}
+		\FlowTextAbove{-3}{0}{0}{0}{I exist}
+		\FlowTextAbove{0}{0}{3}{2}{2 universes}
+		\FlowTextBelow{0}{0}{3}{-2}{1 universe}
+		\FlowTextAbove{3}{2}{6}{3}{2 hospitable}
+		\FlowTextBelow{3}{2}{6}{1}{1 hospitable}
+		\FlowTextBelow{3}{-2}{6}{-2}{1 hospitable}
+		\FlatUpdate{6}{9}{3}
+		\FlatUpdate{6}{9}{1}
+		\FlatUpdate{6}{9}{-2}
+		\Circle{-3}{0}{1}
+		\Circle{0}{0}{1}
+		\Circle{3}{2}{1/2}
+		\Circle{3}{-2}{1/2}
+		\Circle{6}{3}{1/6}
+		\Circle{6}{1}{1/3}
+		\Circle{6}{-2}{1/2}
+		\Circle{9}{3}{1/6}
+		\Circle{9}{1}{1/3}
+		\Circle{9}{-2}{1/2}
+		}
+\caption{Fine-Tuning according to pseudo-Bradley}
+\label{fig:PseudoBradleyFinetuning}
+\end{figure}
+
+
+\begin{figure}[htb]\centering
+		\TwoDPicture{
+		\FlatEvidence{9}{5}{-3}{(priors)}
+		\FlatEvidence{12}{5}{-3}{I exist}
+		\FlowTextAbove{0}{0}{3}{3}{2 universes}
+		\FlowTextBelow{0}{0}{3}{-2}{1 universe}
+		\FlowTextAbove{3}{3}{6}{5}{2 hospitable}
+		\FlowTextAbove{3}{3}{6}{3}{\ 1 hospitable}
+		\FlowTextBelow{3}{3}{6}{1}{0 hospitable}
+		\FlowTextAbove{3}{-2}{6}{-1}{1 hospitable}
+		\FlowTextBelow{3}{-2}{6}{-3}{0 hospitable}
+		\FlowTextAbove{6}{5}{9}{5}{I exist}
+		\FlowTextAbove{6}{3}{9}{3}{I exist}
+		\FlowTextBelow{6}{1}{9}{1}{I don't exist}
+		\FlowTextAbove{6}{-1}{9}{-1}{I exist}
+		\FlowTextBelow{6}{-3}{9}{-3}{I don't exist}
+		\FlatUpdate{9}{12}{5}
+		\FlatUpdate{9}{12}{3}
+		\FlatEliminate{9}{12}{1}
+		\FlatUpdate{9}{12}{-1}
+		\FlatEliminate{9}{12}{-3}
+		\Circle{0}{0}{1}
+		\Circle{3}{3}{1/2}
+		\Circle{3}{-2}{1/2}
+		\Circle{6}{5}{1/8}
+		\Circle{6}{3}{1/4}
+		\Circle{6}{1}{1/8}
+		\Circle{6}{-1}{1/4}
+		\Circle{6}{-3}{1/4}
+		\Circle{9}{5}{1/8}
+		\Circle{9}{3}{1/4}
+		\Circle{9}{1}{1/8}
+		\Circle{9}{-1}{1/4}
+		\Circle{9}{-3}{1/4}
+		\Circle{12}{5}{1/5}
+		\Circle{12}{3}{2/5}
+		\Circle{12}{-1}{2/5}
+		}
+\caption{Fine-Tuning according to Bradley}
+\label{fig:BradleyFinetuning}
+\end{figure}
+
+
+\begin{figure}[bt]\centering
+		\ThreeDPicture{
+
+		\Cartesian{12}{3}{3}
+
+		\CenterFlowTextAbove{0}{2}{3}{3}{First}
+		\CenterFlowTextBelow{0}{2}{3}{1}{Second}
+		\CenterCircle{0}{2}{1}
+		\CenterCircle{3}{3}{1/2}
+		\CenterCircle{3}{1}{1/2}
+
+		\WorldFlowTextAbove{0}{2}{3}{1}{1 trillion}
+		\WorldFlowTextBelow{0}{2}{3}{3}{2 trillion}
+		\WorldCircle{0}{2}{1}
+		\WorldCircle{3}{3}{1/2}
+		\WorldCircle{3}{1}{1/2}
+
+		\TwoEvidence{12}{3}{I exist}{First}
+		\Disk{12}{1}{3}{1/2}
+		\Disk{12}{3}{3}{1/2}
+
+		\Eliminate{9}{12}{3}{1}
+		\Update{9}{12}{1}{3}
+		\Update{9}{12}{3}{3}
+
+		\Evidence{9}{3}{I exist}
+		\Disk{9}{3}{1}{1/3}
+		\Disk{9}{1}{3}{1/3}
+		\Disk{9}{3}{3}{1/3}
+
+		\Eliminate{6}{9}{1}{1}
+		\Update{6}{9}{1}{3}
+		\Update{6}{9}{3}{3}
+		\Update{6}{9}{3}{1}
+
+		\Evidence{6}{3}{(priors)}
+		\Disk{6}{1}{1}{1/4}
+		\Disk{6}{1}{3}{1/4}
+		\Disk{6}{3}{1}{1/4}
+		\Disk{6}{3}{3}{1/4}
+
+		\CombinedFlowTextAbove{3}{6}{1}{1}{I don't exist}
+		\CombinedFlowTextAbove{3}{6}{1}{3}{I exist}
+		\CombinedFlowTextBelow{3}{6}{3}{1}{I exist}
+		\CombinedFlowTextBelow{3}{6}{3}{3}{I exist}
+
+		\CombineVertical{3}{1}{3}
+		\CombineVertical{3}{3}{3}
+		\CombineHorizontal{3}{3}{1}
+		\CombineHorizontal{3}{3}{3}
+
+		\Disk{3}{1}{1}{1/4}
+		\Disk{3}{1}{3}{1/4}
+		\Disk{3}{3}{1}{1/4}
+		\Disk{3}{3}{3}{1/4}
+
+}
+\caption{Doomsday}
+\label{fig:Doomsday}
+\end{figure}
+
+
+
+\begin{figure}[tb]\centering
+\ThreeDPicture{
+
+		\Cartesian{9}{3}{3}
+
+		\CenterFlowTextAbove{0}{2}{3}{3}{Monday}
+		\CenterFlowTextBelow{0}{2}{3}{1}{Tuesday}
+		\CenterCircle{0}{2}{1}
+		\CenterCircle{3}{3}{1/2}
+		\CenterCircle{3}{1}{1/2}
+
+		\WorldFlowTextAbove{0}{2}{3}{1}{Heads}
+		\WorldFlowTextBelow{0}{2}{3}{3}{Tails}
+		\WorldCircle{0}{2}{1}
+		\WorldCircle{3}{3}{1/2}
+		\WorldCircle{3}{1}{1/2}
+
+		\Evidence{9}{3}{Awake}
+		\Disk{9}{3}{1}{1/3}
+		\Disk{9}{1}{3}{1/3}
+		\Disk{9}{3}{3}{1/3}
+
+		\Eliminate{6}{9}{1}{1}
+		\Update{6}{9}{1}{3}
+		\Update{6}{9}{3}{3}
+		\Update{6}{9}{3}{1}
+
+		\Evidence{6}{3}{(priors)}
+		\Disk{6}{1}{1}{1/4}
+		\Disk{6}{1}{3}{1/4}
+		\Disk{6}{3}{1}{1/4}
+		\Disk{6}{3}{3}{1/4}
+
+		\CombinedFlowTextAbove{3}{6}{1}{1}{Asleep}
+		\CombinedFlowTextAbove{3}{6}{1}{3}{Awake}
+		\CombinedFlowTextBelow{3}{6}{3}{1}{Awake}
+		\CombinedFlowTextBelow{3}{6}{3}{3}{Awake}
+
+		\CombineVertical{3}{1}{3}
+		\CombineVertical{3}{3}{3}
+		\CombineHorizontal{3}{3}{1}
+		\CombineHorizontal{3}{3}{3}
+
+		\Disk{3}{1}{1}{1/4}
+		\Disk{3}{1}{3}{1/4}
+		\Disk{3}{3}{1}{1/4}
+		\Disk{3}{3}{3}{1/4}
+
+}
+\caption{Sleeping Beauty}
+\label{fig:SleepingBeauty}
+\end{figure}
+
+
+
+\begin{figure}[tb]\centering
+\ThreeDPicture{
+
+		\Cartesian{13}{5-1/2}{3}
+
+		\CenterFlowTextAbove{0}{2}{4}{3}{Up}
+		\CenterFlowTextBelow{0}{2}{4}{1}{Down}
+		\CenterCircle{0}{2}{1}
+		\CenterCircle{4}{3}{1/2}
+		\CenterCircle{4}{1}{1/2}
+
+		\WorldFlowTextAbove{0}{2}{4}{1}{Everettian}
+		\WorldFlowTextBelow{0}{2}{2}{4}{Stochastic}
+		\WorldFlowTextAbove{2}{4}{4}{3}{Up}
+		\WorldFlowTextBelow{2}{4}{4}{5}{Down}
+		\WorldCircle{0}{2}{1}
+		\WorldCircle{4}{1}{1/2}
+		\WorldCircle{2}{4}{1/2}
+		\WorldCircle{4}{3}{1/4}
+		\WorldCircle{4}{5}{1/4} 
+
+		\TwoEvidence{13}{5}{I exist}{Up}
+		\Disk{13}{1}{3}{2/3}
+		\Disk{13}{3}{3}{1/3}
+
+		\Eliminate{10}{13}{1}{1}
+		\Update{10}{13}{1}{3}
+		\Update{10}{13}{3}{3}
+		\Eliminate{10}{13}{5}{1}
+
+		\Evidence{10}{5}{I exist}
+		\Disk{10}{1}{1}{1/3}
+		\Disk{10}{1}{3}{1/3}
+		\Disk{10}{3}{3}{1/6}
+		\Disk{10}{5}{1}{1/6}
+
+		\Update{7}{10}{1}{1}
+		\Update{7}{10}{1}{3}
+		\Eliminate{7}{10}{3}{1}
+		\Update{7}{10}{3}{3}
+		\Update{7}{10}{5}{1}
+		\Eliminate{7}{10}{5}{3}
+
+		\Evidence{7}{5}{(priors)}
+		\Disk{7}{1}{1}{1/4}
+		\Disk{7}{1}{3}{1/4}
+		\Disk{7}{3}{1}{1/8}
+		\Disk{7}{3}{3}{1/8}
+		\Disk{7}{5}{1}{1/8}
+		\Disk{7}{5}{3}{1/8}
+
+		\CombinedFlowTextAbove{4}{7}{1}{1}{I exist}
+		\CombinedFlowTextAbove{4}{7}{1}{3}{I exist}
+		\CombinedFlowTextAbove{4}{7}{3}{1}{I don't exist}
+		\CombinedFlowTextBelow{4}{7}{3}{3}{I exist}
+		\CombinedFlowTextBelow{4}{7}{5}{1}{I exist}
+		\CombinedFlowTextBelow{4}{7}{5}{3}{I don't exist}
+
+		\CombineVertical{4}{1}{3}
+		\CombineVertical{4}{3}{3}
+		\CombineVertical{4}{5}{3}
+		\CombineHorizontal{4}{5}{1}
+		\CombineHorizontal{4}{5}{3}
+
+		\Disk{4}{1}{1}{1/4}
+		\Disk{4}{1}{3}{1/4}
+		\Disk{4}{3}{1}{1/8}
+		\Disk{4}{3}{3}{1/8}
+		\Disk{4}{5}{1}{1/8}
+		\Disk{4}{5}{3}{1/8}
+
+}
+\caption{Quantum Mechanics}
+\label{fig:Quantum}
+\end{figure}
+
+
+
+\begin{figure}[tb]\centering
+\ThreeDPicture{
+
+		\Cartesian{15}{7-1/2}{3}%This and ...
+
+		\CenterFlowTextAbove{0}{2}{3}{3}{Universe 2}
+		\CenterFlowTextBelow{0}{2}{3}{1}{Universe 1}
+		\CenterCircle{0}{2}{1}
+		\CenterCircle{3}{3}{1/2}
+		\CenterCircle{3}{1}{1/2}
+
+		\WorldFlowTextAbove{0}{3}{3}{1}{Multiverse}
+		\WorldFlowTextBelow{0}{3}{3}{5}{Universe}
+		\WorldCircle{0}{3}{1}
+		\WorldCircle{3}{5}{1/2}
+		\WorldCircle{3}{1}{1/2}
+
+		\Evidence{15}{7}{I exist}% ... this is used to define \tikzscale in preamble
+		\Disk{15}{1}{1}{1/3}
+		\Disk{15}{1}{3}{1/3}
+		\Disk{15}{5}{1}{1/3}
+
+		\Update{12}{15}{1}{1}
+		\Update{12}{15}{1}{3}
+		\Eliminate{12}{15}{3}{1}
+		\Eliminate{12}{15}{3}{3}
+		\Eliminate{12}{15}{5}{3}
+		\Update{12}{15}{5}{1}
+		\Eliminate{12}{15}{7}{1}
+
+		\Evidence{12}{7}{(priors)}
+		\Disk{12}{1}{1}{1/8}
+		\Disk{12}{1}{3}{1/8}
+		\Disk{12}{3}{1}{1/8}
+		\Disk{12}{3}{3}{1/8}
+		\Disk{12}{5}{3}{1/4}
+		\Disk{12}{5}{1}{1/8}
+		\Disk{12}{7}{1}{1/8}
+
+		\CombinedFlowTextAbove{9}{12}{1}{1}{I exist}
+		\CombinedFlowTextAbove{9}{12}{1}{3}{I exist}
+		\CombinedFlowTextAbove{9}{12}{3}{1}{I don't exist}
+		\CombinedFlowTextBelow{9}{12}{3}{3}{I don't exist}
+		\CombinedFlowTextAbove{9}{12}{5}{1}{I exist}
+		\CombinedFlowTextBelow{9}{12}{5}{3}{I don't exist}
+		\CombinedFlowTextBelow{9}{12}{7}{1}{I don't exist}
+
+		\Disk{9}{1}{1}{1/8}
+		\Disk{9}{1}{3}{1/8}
+		\Disk{9}{3}{1}{1/8}
+		\Disk{9}{3}{3}{1/8}
+		\Disk{9}{5}{3}{1/4}
+		\Disk{9}{5}{1}{1/8}
+		\Disk{9}{7}{1}{1/8}
+
+		\CombinedFlowTextBelow{3}{9}{5}{3}{My universe doesn't exist}
+
+		\CombinedFlowTextAbove{6}{9}{1}{1}{Hospitable}
+		\CombinedFlowSplitTextAbove{6}{1}{1}{Inhospitable}
+		\CombinedFlowTextAbove{6}{9}{1}{3}{Hospitable}
+		\CombinedFlowSplitTextAbove{6}{1}{3}{Inhospitable}
+		\CombinedFlowTextAbove{6}{9}{5}{1}{Hospitable}
+		\CombinedFlowSplitTextBelow{6}{5}{1}{Inhospitable}
+		\Disk{6}{1}{1}{1/4}
+		\Disk{6}{1}{3}{1/4}
+		\Disk{6}{5}{1}{1/4}
+
+		\CombinedFlowTextAbove{3}{6}{1}{1}{My u exists}
+		\CombinedFlowTextAbove{3}{6}{1}{3}{My u exists}
+		\CombinedFlowTextBelow{3}{6}{5}{1}{My u exists}
+
+		\CombineVertical{3}{1}{3}
+		\CombineVertical{3}{5}{3}
+		\CombineHorizontal{3}{5}{1}
+		\CombineHorizontal{3}{5}{3}
+
+		\Disk{3}{1}{1}{1/4}
+		\Disk{3}{1}{3}{1/4}
+		\Disk{3}{5}{1}{1/4}
+		\Disk{3}{5}{3}{1/4}
+
+}
+\caption{Fine-Tuning}
+\label{fig:Finetuning}
+\end{figure}
+
+\end{document}
